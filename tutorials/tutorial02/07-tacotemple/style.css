@@ -1,0 +1,28 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 475px 475px;
+    justify-content: center;
+}
+
+.card {
+    display: grid;
+    grid-template-columns: 275px auto;
+    margin: 5px;
+    padding: 5px;
+    border: 2px solid lightgray;
+    align-items: center;
+}
+
+.card div {
+    margin: 5px;
+    padding: 5px;
+}
+
+.card img {
+    margin: 5px;
+    padding: 5px;
+}
