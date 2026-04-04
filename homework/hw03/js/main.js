@@ -2,16 +2,87 @@
 // included in index.html
 
 
-const rootURL = "https://photo-app-secured.herokuapp.com";
 let token = null;
+const rootURL = "https://photo-app-secured.herokuapp.com";
 let username = "wshaw";   // change to your username :)
 let password = "password";
+let userData = null;
 
 async function initializeScreen() {
     token = await getToken();
     showNav();
     // invoke all of the Part 1 functions here
 		showPosts();
+		getUser();
+		showSuggestions();
+		showStories();
+}
+
+async function showStories() {
+	    const response = await fetch(`${rootURL}/api/stories/`, {
+        method: "GET",
+        headers: {
+            'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`
+        }
+    });
+    const data = await response.json();
+
+		data.forEach(post => {
+			document.querySelector("#stories").insertAdjacentHTML("beforeend", `
+				<div class="flex flex-col justify-center items-center">
+					<img src=${post.user.thumb_url} class="rounded-full border-4 border-gray-300" />
+					<p class="text-xs text-gray-500">${post.user.username}</p>
+        </div>
+			`);
+		});
+		
+}
+
+async function showSuggestions() {
+	    const response = await fetch(`${rootURL}/api/suggestions/`, {
+        method: "GET",
+        headers: {
+            'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`
+        }
+    });
+    const data = await response.json();
+
+		document.querySelector("#suggestions").innerHTML = `
+			<p class="text-base text-gray-400 font-bold mb-4">Suggestions for you</p>
+		`;
+
+		data.forEach(post => {
+			document.querySelector("#suggestions").insertAdjacentHTML("beforeend", `
+				<section class="flex justify-between items-center mb-4 gap-2">
+					<img src=${post.thumb_url} class="rounded-full" />
+					<div class="w-[180px]">
+						<p class="font-bold text-sm">${post.username}</p>
+						<p class="text-gray-500 text-xs">suggested for you</p>
+					</div>
+					<button class="text-blue-500 text-sm py-2">follow</button>
+				</section>
+			`);
+		});
+		
+}
+
+async function getUser() {
+	const response = await fetch("https://photo-app-secured.herokuapp.com/api/profile/", {
+			method: "GET",
+			headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`
+			}
+	});
+	const data = await response.json();
+	userData = data;
+
+	document.querySelector("#user").innerHTML = `
+		<img src=${data.thumb_url} class="rounded-full w-16">
+		<h2 class="font-Comfortaa font-bold text-2xl">${data.username}</h2>
+	`;
 }
 
 // fetch and display the posts
@@ -27,7 +98,6 @@ async function showPosts() {
 	});
 
 	const posts = await response.json();
-	console.log(posts);
 
 	const postsContainerEl = document.querySelector("#postsContainer");
 
@@ -69,38 +139,98 @@ function getLikes(post) {
 	}
 }
 
-// ========== FINISH ==========
-function getBookmarkButton(post) {
-	if (post.current_user_bookmark_id !== undefined) {
+function getLikeButton(post) {
+	if (post.current_user_like_id !== undefined) {
 		return `
+			<button onclick="unLike(${post.current_user_like_id})">
+				<i class="fas fa-heart" style="color: rgb(255, 59, 59);"></i>
+			</button>
+		`;
+	} else {
+		return `
+			<button onclick="like(${post.id})">
+				<i class="far fa-heart"></i>
+			</button>
 		`;
 	}
 }
 
-// ========== FINISH ==========
-async function bookmark(post) {
-	const endpoint = '/api/bookmarks/';
+async function like(postID) {
+	const endpoint = '/api/likes/';
 	const postData = {
-    "post_id": post
+    "post_id": postID,
 	};
 
-	async function getAndShowData() {
-		const response = await fetch("https://photo-app-secured.herokuapp.com/api/bookmarks/", {
-			method: "POST",
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: "Bearer " + token,
-			},
-			body: JSON.stringify(postData)
-		});
-		const data = await response.json();
-		console.log(data);
-	}	
+	const response = await fetch(`${rootURL}/api/likes/`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: "Bearer " + token,
+		},
+		body: JSON.stringify(postData)
+	});
+	const data = await response.json();
+	console.log(data);
 }
 
-// ========== FINISH ==========
-async function unbookmark(post) {
+async function unLike(likeId) {
+	const endpoint = `${rootURL}/api/likes/${likeId}`
+	const response = await fetch(endpoint, {
+		method: "DELETE",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: "Bearer " + token,
+		}
+	});
+	const data = await response.json();
+	console.log(data);
+}
 
+function getBookmarkButton(post) {
+	if (post.current_user_bookmark_id !== undefined) {
+		return `
+			<button onclick="unBookmark(${post.current_user_bookmark_id})">
+				<i class="fas fa-bookmark"></i>
+			</button>
+		`;
+	} else {
+		return `
+			<button onclick="bookmark(${post.id})">
+				<i class="far fa-bookmark"></i>
+			</button>
+		`;
+	}
+}
+
+async function bookmark(postID) {
+	const endpoint = '/api/bookmarks/';
+	const postData = {
+    "post_id": postID,
+	};
+
+	const response = await fetch(`${rootURL}/api/bookmarks/`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: "Bearer " + token,
+		},
+		body: JSON.stringify(postData)
+	});
+	const data = await response.json();
+	console.log(data);
+}
+
+async function unBookmark(bookmarkId) {
+	const endpoint = `${rootURL}/api/bookmarks/${bookmarkId}`
+	const response = await fetch(endpoint, {
+		method: "DELETE",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: "Bearer " + token,
+		}
+	});
+	const data = await response.json();
+	console.log(data);
 }
 
 function postToHTML(post) {
@@ -114,12 +244,12 @@ function postToHTML(post) {
 			<div class="p-4">
 				<div class="flex justify-between text-2xl mb-3">
 					<div>
-						<button><i class="far fa-heart"></i></button>
+						${getLikeButton(post)}
 						<button><i class="far fa-comment"></i></button>
 						<button><i class="far fa-paper-plane"></i></button>
 					</div>
 					<div>
-						<button><i class="far fa-bookmark"></i></button>
+						${getBookmarkButton(post)}
 					</div>
 				</div>
 				<p class="font-bold mb-3">${getLikes(post)}</p>
