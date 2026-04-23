@@ -17,8 +17,6 @@ export default function Posts({ token }) {
 
     return (
 			<div>
-				TODO: output all of the posts:
-				{posts.length}
 				{
 					posts.map(post => 
 						<Post post={post} token={token} key={post.id} />

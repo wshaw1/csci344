@@ -1,5 +1,7 @@
 import React from "react";
 import BookmarkButton from "./BookmarkButton.jsx";
+import LikeButton from "./LikeButton.jsx";
+
 import Comments from "./Comments.jsx";
 
 export default function Post({post, token}) {
@@ -15,7 +17,11 @@ export default function Post({post, token}) {
 				<div className="p-4">
 					<div className="flex justify-between text-2xl mb-3">
 						<div>
-							<button><i className="fas fa-heart text-red-600"></i></button>
+							<LikeButton 
+								likeId={post.current_user_like_id}
+								postId={post.id}
+								token={token}
+							/>
 							<button><i className="far fa-comment"></i></button>
 							<button><i className="far fa-paper-plane"></i></button>
 						</div>
@@ -25,7 +31,7 @@ export default function Post({post, token}) {
 							token={token}
 						/>
 					</div>
-					<p className="font-bold mb-3">30 likes</p>
+					<p className="font-bold mb-3">{post.likes.length} likes</p>
 					<div className="text-sm mb-3">
 						<p>
 							<strong>{post.user.username}</strong>
